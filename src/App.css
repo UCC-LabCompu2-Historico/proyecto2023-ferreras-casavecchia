@@ -1,0 +1,118 @@
+#root {
+  background-image: url('./img/bg.png');
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
+.App {
+  text-align: center;
+  width: 100vw;
+  text-align: center;
+  margin: 0 auto;
+  padding: 30px;
+  backdrop-filter: blur(150px);
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(10px + 2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+textarea {
+  resize: none;
+  border: transparent;
+  border-radius: 16px;
+  width: 60%;
+  padding: 10px;
+  font-family: system-ui;
+  font-size: 14px;
+  transition: box-shadow 0.3s ease-in-out;
+  background: linear-gradient(134.1deg, #f7f7f700 0%, #e7e7e71c 100%);
+  box-shadow: 0 0 10px #cdcdcd54, 0 0 20px #cdcdcd54, 0 0 30px #cdcdcd54;
+  margin: 50px 0;
+  color: #fff;
+}
+
+textarea:focus {
+  outline: none;
+  border: 1px solid #F5F7F8;
+  border-radius: 16px;
+  box-shadow: 0 0 10px #cdcdcd54, 0 0 20px #cdcdcd54, 0 0 30px #cdcdcd54;
+  animation: rainbow 6s ease-in-out infinite;
+}
+
+@keyframes rainbow {
+  0% {
+    box-shadow: 0 0 10px #cdcdcd54, 0 0 20px #cdcdcd54, 0 0 30px #cdcdcd54;
+  }
+  25% {
+    box-shadow: 0 0 10px #F7D02C54, 0 0 20px #F7D02C54, 0 0 30px #F7D02C54;
+  }
+  50% {
+    box-shadow: 0 0 10px #E53E3E54, 0 0 20px #E53E3E54, 0 0 30px #E53E3E54;
+  }
+  75% {
+    box-shadow: 0 0 10px #38B2AC54, 0 0 20px #38B2AC54, 0 0 30px #38B2AC54;
+  }
+  100% {
+    box-shadow: 0 0 10px #cdcdcd54, 0 0 20px #cdcdcd54, 0 0 30px #cdcdcd54;
+  }
+}
+
+
+button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  font-size: 18px;
+  background-color: #282c34;
+  border-radius: 8px;
+  border: transparent;
+  color: white;
+  font-weight: 400;
+  font-size: 12px;
+  font-family: 'Fira Code', monospace;
+}
+
+canvas {
+  display: block;
+  margin: 30px auto;
+  background-color: #ffffff2e;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 20px;
+}
+
+h1 {
+  color: #fff;
+}
