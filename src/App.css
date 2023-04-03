@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 body {
   background: #191B1D;
 }
@@ -463,4 +467,40 @@ p.selected-algo {
 .link {
   text-decoration: underline;
   color: #A5FF8C;
+}
+
+.transition-title-main {
+  margin-top: 0;
+  margin-bottom: 0;
+  letter-spacing: 2px;
+  font-size: 60px;
+  align-self: center;
+  justify-self: flex-start;
+  text-align: center;
+  font-family: 'Nunito', sans-serif;
+  line-height: 1.2em;
+  font-size: 34px;
+  text-transform: uppercase;
+  font-weight: 400;
+  width: 100%;
+}
+
+.transition-title {
+  margin-top: 0;
+  margin-bottom: 0;
+  letter-spacing: 2px;
+  font-size: 40px;
+  align-self: center;
+  justify-self: flex-start;
+  text-align: center;
+  font-family: 'Nunito', sans-serif;
+  line-height: 1.2em;
+  font-size: 34px;
+  text-transform: uppercase;
+  font-weight: 400;
+  width: 100%;
+}
+
+.custom-svg {
+  width: 100%;
 }

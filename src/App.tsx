@@ -15,6 +15,7 @@ import hand from './assets/img/hand.svg';
 
 import { ALGORITHMS } from './data/algorithms';
 import { contentAnimation, fadeIn, fadeInAndYAnimation } from './animations/commonAnimations';
+import { InitialTransition } from './components/InitialTransition';
 
 const App: React.FC = () => {
   const [code, setCode] = useState<string>('');
@@ -121,12 +122,12 @@ const App: React.FC = () => {
     };
   
     canvasRef.current.addEventListener("mousemove", handleMouseMove);
-    canvasRef.current.addEventListener("click", handleClick); // Add click event listener
+    canvasRef.current.addEventListener("click", handleClick);
   
     return () => {
       if (canvasRef.current) {
         canvasRef.current.removeEventListener("mousemove", handleMouseMove);
-        canvasRef.current.removeEventListener("click", handleClick); // Remove click event listener
+        canvasRef.current.removeEventListener("click", handleClick);
       }
     };
   }, [canvasRef, snippetMap]);
@@ -193,7 +194,7 @@ const App: React.FC = () => {
   
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-    const barWidth = 12; // Set the bar width to 12px
+    const barWidth = 12;
     const totalBars = arr.length;
     const chartWidth = canvas.width;
     const padding = (chartWidth - totalBars * barWidth) / (totalBars + 1);
@@ -448,12 +449,10 @@ async function heapify(size: any, i: any) {
   
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   
-    // Draw the units
     ctx.font = '12px Arial';
     ctx.textAlign = 'center';
     ctx.fillStyle = '#252525';
   
-    // Draw unit partitions with concrete values on Y-axis
     const yAxisLabels = [
       { value: 0, label: '0' },
       { value: 100, label: '100ms' },
@@ -473,7 +472,6 @@ async function heapify(size: any, i: any) {
       ctx.textAlign = 'right';
       ctx.fillText(label.label, xOffset - 10, yPosition);
   
-      // Draw horizontal gridlines
       ctx.beginPath();
       ctx.strokeStyle = 'rgba(37, 37, 37, 0.3)';
       ctx.lineWidth = 1;
@@ -482,7 +480,6 @@ async function heapify(size: any, i: any) {
       ctx.stroke();
     });
   
-    // Adjust x position of the bars according to their # identifier
     for (let i = 0; i < 10; i++) {
       const xLabelSpacing = (xAxisLength - barWidth) / 10;
       const xLabelXPosition = xOffset + ((i + 1) * xLabelSpacing) + (barWidth / 2);
@@ -497,7 +494,6 @@ async function heapify(size: any, i: any) {
       ctx.fillStyle = '#2F3133';
       roundedRect(ctx, barX, canvas.height - yOffset - barHeight + 1, 12, barHeight - 1, 40);
     
-      // Set the styles for the bars
       ctx.lineJoin = 'round';
       ctx.lineWidth = barWidth;
   
@@ -520,6 +516,8 @@ async function heapify(size: any, i: any) {
 
   return (
     <div className="App">
+      <InitialTransition />
+      
       <AnimatePresence mode='wait'>
         {
           matchesMedia? (
