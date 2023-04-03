@@ -1,4 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
+import { motion as m, AnimatePresence } from 'framer-motion';
 import _ from 'lodash';
 import { gsap } from 'gsap';
 
@@ -6,26 +7,57 @@ import './App.css';
 import './Normalize.css';
 
 // @ts-ignore
-import offButton from './assets/img/offButton.svg';
-// @ts-ignore
 import codeIcon from './assets/img/codeIcon.svg';
 // @ts-ignore
 import runButton from './assets/img/runButton.svg';
+// @ts-ignore
+import hand from './assets/img/hand.svg';
+
+import { ALGORITHMS } from './data/algorithms';
+import { contentAnimation, fadeIn, fadeInAndYAnimation } from './animations/commonAnimations';
 
 const App: React.FC = () => {
   const [code, setCode] = useState<string>('');
   const [executionTimes, setExecutionTimes] = useState<number[]>([]);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const algosCanvasRef = useRef<HTMLCanvasElement>(null);
   const [snippetMap, setSnippetMap] = useState<Map<number, string>>(new Map());
+  const [matchesMedia, setMatchesMedia] = useState(window.matchMedia("(min-width: 1200px) and (min-height: 740px)").matches)
+
+  const [selectedMenu, setSelectedMenu] = useState<number>(0);
+  const [selectedAlgo, setSelectedAlgo] = useState<number>(0);
+
+  const [randomArray, setRandomArray] = useState<number[]>([]);
+  const [runningAlgorithm, setRunningAlgorithm] = useState<boolean>(false);
 
   const barWidth = 12;
   const xOffset = 60;
   const yOffset = 10;
 
   const getMaxBarHeight = () => {
-    if (!canvasRef.current) return 0;
-    return canvasRef.current.height - yOffset * 2;
+    if (canvasRef.current) return canvasRef.current.height - yOffset * 2;
+    if(algosCanvasRef.current) return algosCanvasRef.current.height - yOffset * 2;
+    return 0;
   };
+
+  const randomArrayGenerator = () => {
+    const arr = [];
+    for (let i = 0; i < 25; i++) {
+      arr.push(Math.floor(Math.random() * 100 + 5));
+    }
+    setRandomArray(arr);
+    drawAlgos(-1, -1, arr);
+  }
+
+  useEffect(() => {
+    randomArrayGenerator();
+  }, [selectedAlgo]);
+
+  useEffect(() => {
+    window
+    .matchMedia("(min-width: 1200px) and (min-height: 740px)")
+    .addEventListener('change', e => setMatchesMedia( e.matches ));
+  }, []);
 
   const handleClick = (e: MouseEvent) => {
     const canvas = canvasRef.current;
@@ -55,7 +87,7 @@ const App: React.FC = () => {
 
   useEffect(() => {
     draw(executionTimes);
-  }, [executionTimes]);
+  }, [executionTimes, selectedMenu]);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -113,13 +145,29 @@ const App: React.FC = () => {
     return () => {
       window.removeEventListener('resize', handleResize);
     };
-  }, []);
+  }, [selectedMenu]);
+
+  useEffect(() => {
+    if (!algosCanvasRef.current) return;
+
+    const handleResize = _.debounce(() => {
+      resizeCanvas(algosCanvasRef.current);
+    }, 250);
+
+    resizeCanvas(algosCanvasRef.current);
+
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, [selectedMenu]);
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCode(e.target.value);
   };
 
-  const resizeCanvas = (canvas: any) => {
+  const resizeCanvas = async (canvas: any) => {
     const container = document.querySelector('.App-body-right') as HTMLElement;
     if (!container) return;
     
@@ -132,8 +180,232 @@ const App: React.FC = () => {
     canvas.width = container.offsetWidth - paddingLeft - paddingRight;
     canvas.height = container.offsetHeight - paddingTop - paddingBottom - 129;
 
-    draw(executionTimes); 
+    if(canvas === canvasRef.current) draw(executionTimes); 
+    if(canvas === algosCanvasRef.current) await drawAlgos();
   }
+
+  async function drawAlgos(selectedBar = -1, pivotIndex = -1, arr = randomArray) {
+    const canvas = algosCanvasRef.current;
+    if (!canvas) return;
+  
+    const ctx = await canvas.getContext("2d");
+    if (!ctx) return;
+  
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  
+    const barWidth = 12; // Set the bar width to 12px
+    const totalBars = arr.length;
+    const chartWidth = canvas.width;
+    const padding = (chartWidth - totalBars * barWidth) / (totalBars + 1);
+  
+    const minHeight = 0;
+    const maxHeight = 105;
+  
+    for (let i = 0; i < arr.length; i++) {
+      const value = arr[i];
+      const x = i * barWidth + (i + 1) * padding;
+      const barHeight = ((value - minHeight) / (maxHeight - minHeight)) * canvas.height;
+  
+      const y = canvas.height - barHeight;
+  
+      if (i === selectedBar) {
+        ctx.fillStyle = "#74FA50";
+      } else if (i === pivotIndex) {
+        ctx.fillStyle = "#FF5733";
+      } else {
+        ctx.fillStyle = "#2F3133";
+      }
+  
+      ctx.fillRect(x, y, 12, barHeight);
+    }
+  }
+
+  useEffect(() => {
+    randomArrayGenerator();
+  }, [selectedMenu]);
+
+  const handleRun = () => {
+    if(runningAlgorithm) return;
+    if (selectedMenu === 0) executeCode();
+    if (selectedMenu === 1) executeAlgo();
+  }
+
+  const executeAlgo = async () => {
+    let arrayCopy = [...randomArray];
+    const algorithms = [mergeSort, quickSort, heapSort, bubbleSort];
+
+    setRunningAlgorithm(true);
+  
+    if (selectedAlgo >= 0 && selectedAlgo < algorithms.length) {
+      await algorithms[selectedAlgo](arrayCopy);
+    }
+
+    setRunningAlgorithm(false);
+  };
+
+  async function quickSort(arr: any, start = 0, end = arr.length - 1) {
+    if (start >= end) {
+      return;
+    }
+  
+    const pivotIndex = await partition(arr, start, end);
+  
+    await quickSort(arr, start, pivotIndex - 1);
+    await quickSort(arr, pivotIndex + 1, end);
+
+    await drawAlgos(-1, -1, arr);
+  }
+  
+  async function partition(arr: any, start: any, end: any) {
+    const pivotIndex = Math.floor(Math.random() * (end - start + 1)) + start;
+    const pivot = arr[pivotIndex];
+    await swap(arr, pivotIndex, end);
+  
+    let i = start;
+    for (let j = start; j < end; j++) {
+      if (arr[j] <= pivot) {
+        await swap(arr, i, j, j);
+        i++;
+      }
+    }
+    await swap(arr, i, end);
+  
+    return i;
+  }
+
+  async function mergeSort(arr: any, start = 0, end = arr.length - 1) {
+    if (start >= end) {
+        return;
+    }
+
+    const mid = Math.floor((start + end) / 2);
+    await mergeSort(arr, start, mid);
+    await mergeSort(arr, mid + 1, end);
+
+    await merge(arr, start, mid, end);
+
+    await drawAlgos(-1, -1, arr);
+  }
+
+  async function merge(arr: any, start: any, mid: any, end: any) {
+    const left = arr.slice(start, mid + 1);
+    const right = arr.slice(mid + 1, end + 1);
+
+    let i = start;
+    let j = 0;
+    let k = 0;
+
+    while (j < left.length && k < right.length) {
+        if (left[j] <= right[k]) {
+            arr[i] = left[j];
+            j++;
+        } else {
+            arr[i] = right[k];
+            k++;
+        }
+        setRandomArray([...arr]);
+        await drawAlgos(i, -1, arr);
+        await sleep(50);
+        i++;
+    }
+
+    while (j < left.length) {
+        arr[i] = left[j];
+        setRandomArray([...arr]);
+        await drawAlgos(j, -1, arr);
+        await sleep(50);
+        i++;
+        j++;
+    }
+
+    while (k < right.length) {
+        arr[i] = right[k];
+        setRandomArray([...arr]);
+        await drawAlgos(k, -1, arr);
+        await sleep(50);
+        i++;
+        k++;
+    }
+  }
+
+  async function swap(arr: any, i: any, j: any, pivotIndex = -1) {
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+    setRandomArray([...arr]);
+    await drawAlgos(j, pivotIndex, arr);
+    await sleep(50);
+  }
+
+  async function heapSort() {
+    let size = randomArray.length;
+
+    for (let i = Math.floor(size / 2 - 1); i >= 0; i--) {
+        await heapify(size, i);
+    }
+
+    for (let i = size - 1; i >= 0; i--) {
+        const temp = randomArray;
+        [temp[0], temp[i]] = [temp[i], temp[0]];
+        setRandomArray(temp);
+        await drawAlgos(i);
+        await sleep(50);
+
+        await heapify(i, 0);
+    }
+
+    await drawAlgos();
+}
+
+async function heapify(size: any, i: any) {
+    return new Promise(async (resolve) => {
+        let max = i;
+        const left = 2 * i + 1;
+        const right = 2 * i + 2;
+
+        if (left < size && randomArray[left] > randomArray[max]) {
+            max = left;
+        }
+
+        if (right < size && randomArray[right] > randomArray[max]) {
+            max = right;
+        }
+
+        if (max !== i) {
+            const temp = randomArray;
+            [temp[i], temp[max]] = [temp[max], temp[i]];
+            setRandomArray(temp);
+            await drawAlgos(max);
+            await sleep(50);
+
+            await heapify(size, max);
+        }
+
+        // @ts-ignore
+        resolve();
+    });
+}
+
+  async function bubbleSort() {
+      const n = randomArray.length;
+
+      for (let i = 0; i < n - 1; i++) {
+          for (let j = 0; j < n - 1 - i; j++) {
+              if (randomArray[j] > randomArray[j + 1]) {
+                  const temp = randomArray;
+                  [temp[j], temp[j + 1]] = [temp[j + 1], temp[j]];
+                  setRandomArray(temp);
+                  await drawAlgos(j + 1);
+                  await sleep(50);
+              }
+          }
+      }
+
+      await drawAlgos();
+  }
+
+  const sleep = async (ms: any) => {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  };
+  
 
   const executeCode = () => {
     const startTime = performance.now();
@@ -248,60 +520,167 @@ const App: React.FC = () => {
 
   return (
     <div className="App">
+      <AnimatePresence mode='wait'>
+        {
+          matchesMedia? (
+            <>
 
-      <header className="App-header">
+              <m.header variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className="App-header">
 
-        <div className="App-title">
-          <h1 className='title'>Performance Playground <span className="underlined"></span></h1>
-        </div>
+                <m.div className="App-title" variants={fadeInAndYAnimation(.2, 0.2)} initial="hidden" animate="show" exit="exit">
+                  <h1 className='title'>Performance Playground <span className="underlined"></span></h1>
+                </m.div>
 
-        <div className="App-nav-buttons">
+                <m.div variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className="App-nav-buttons">
+                  <div className="nav-button" onClick={() => {if (!runningAlgorithm) setSelectedMenu(0)}}>
+                    <AnimatePresence mode='wait'>
+                    {
+                      selectedMenu === 0 && (
+                        <>
+                          <m.div variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit" className="left-corner">
+                            <div className="inner-corner inner-corner-left"></div>
+                          </m.div>
 
-          <div className="nav-button nav-button-active">
-            <p className='nav-button-text nav-button-text-active'>Code Visualizer<span className="center-underlined"></span></p>
-          </div>
+                          <m.div variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit" className="right-corner">
+                            <div className="inner-corner inner-corner-right"></div>
+                          </m.div>
 
-          <div className="nav-button">
-            <p className='nav-button-text'>Sorting Visualizer</p>
-          </div>
+                          <m.div variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit" className="inner-color"></m.div>
+                        </>
+                      )
+                    }
+                    </AnimatePresence>
 
-          <div className="nav-button">
-            <p className='nav-button-text-innactive'>Pathfinder Visualizer</p>
-          </div>
+                    <p className={selectedMenu === 0? 'nav-button-text nav-button-text-active' : 'nav-button-text'}>Code Visualizer{selectedMenu === 0 && (<span className="center-underlined"></span>)}</p>
+                  </div>
 
-        </div>
+                  <div className="nav-button" onClick={() => setSelectedMenu(1)}>
+                    <AnimatePresence mode='wait'>
+                    {
+                      selectedMenu === 1 && (
+                        <>
+                          <m.div variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit" className="left-corner">
+                            <div className="inner-corner inner-corner-left"></div>
+                          </m.div>
 
-        <div className="App-off-button">
-          <img src={offButton} alt="Off" />
-        </div>
+                          <m.div variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit" className="right-corner">
+                            <div className="inner-corner inner-corner-right"></div>
+                          </m.div>
 
-      </header>
+                          <m.div variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit" className="inner-color"></m.div>
+                        </>
+                      )
+                    }
+                    </AnimatePresence>
+                    
+                    <p className={selectedMenu === 1? 'nav-button-text nav-button-text-active' : 'nav-button-text'}>Sorting Visualizer{selectedMenu === 1 && (<span className="center-underlined"></span>)}</p>
+                  </div>
 
-      <div className="App-body">
+                  <div className="nav-button">
+                    <p className='nav-button-text-innactive'>Pathfinder Visualizer</p>
+                  </div>
 
-        <div className="App-body-left">
-          <div className="left-title">
-            <div className="left-icon">
-              <img src={codeIcon} alt="Code" />
-            </div>
+                </m.div>
 
-            <p className='left-title-text'>Code Input<span className="underlined"></span></p>
-          </div>
+                <div className="App-off-button">
+                </div>
 
-          <textarea className='left-code-input' value={code} onChange={handleChange} rows={10} cols={50} />
-          <button className='run-button' onClick={executeCode}><img src={runButton} alt="Run" /></button>
+              </m.header>
 
-        </div>
-        
-        <div className="App-body-right">
-          <div className="right-title">
-            <p className='right-title-left'>Execution Time</p>
-            <p className='right-title-right'>Execution #</p>
-          </div>
-          <canvas ref={canvasRef} width="600" height="400" />
-        </div>
+              <m.div variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className="App-body">
 
-      </div>
+                <m.div variants={contentAnimation(0.6)} initial="hidden" animate="show" exit="exit" className="App-body-left">
+                  <m.div className="left-title" variants={fadeInAndYAnimation(1, 0.2)} initial="hidden" animate="show" exit="exit">
+                    <m.div className="left-icon">
+                      <img src={codeIcon} alt="Code" />
+                    </m.div>
+
+                    <AnimatePresence mode='wait'>
+                      {
+                        selectedMenu === 0? <m.p key={selectedMenu} variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Code Input<span className="underlined"></span></m.p> :
+                        selectedMenu === 1 && <m.p key={selectedMenu}  variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Sorting Algorithm<span className="underlined"></span></m.p>
+                      }
+                    </AnimatePresence>
+                  </m.div>
+                    <AnimatePresence mode='wait'>
+                    {
+                      selectedMenu === 0? <m.textarea key={selectedMenu} variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input' value={code} onChange={handleChange} rows={10} cols={50} /> :
+                      selectedMenu === 1 && (
+                        <div className="left-options">
+                          <m.div key={selectedMenu} className="left-options-algorithms" variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit">
+                            <p className={selectedAlgo === 0? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(0)}}>Merge Sort</p>
+                            <p className={selectedAlgo === 1? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(1)}}>Quick Sort</p>
+                            <p className={selectedAlgo === 2? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(2)}}>Heap Sort</p>
+                            <p className={selectedAlgo === 3? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(3)}}>Bubble Sort</p>
+
+                            <div className="vertical-separator"></div>
+                            <div className="horizontal-separator"></div>
+                          </m.div>
+
+                          <m.textarea key={selectedMenu} variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input algorithm-input' value={selectedAlgo === 0? ALGORITHMS.mergeSort.code : selectedAlgo === 1? ALGORITHMS.quickSort.code : selectedAlgo === 2? ALGORITHMS.heapSort.code : selectedAlgo === 3? ALGORITHMS.bubbleSort.code : ''} onChange={handleChange} rows={10} cols={50} readOnly />
+                        </div>
+                      )
+                    }
+                    </AnimatePresence>
+                  
+                  <m.button className='run-button' onClick={handleRun} variants={fadeInAndYAnimation(0.8, 0.2)} initial="hidden" animate="show" exit="exit"><img src={runButton} alt="Run" /></m.button>
+
+                </m.div>
+                
+                <m.div className="App-body-right" variants={contentAnimation(0.8)} initial="hidden" animate="show" exit="exit">
+                  <AnimatePresence mode='wait'>
+                    {
+                      selectedMenu === 0? (
+                        <div key={selectedMenu} className="right-title">
+                          <m.p variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-left'>Execution Time</m.p>
+                          <m.p variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-right'>Execution #</m.p>
+                        </div>
+                      ) :
+                      selectedMenu === 1 && (
+                        <div key={selectedMenu} className="right-title">
+                          <m.p variants={fadeIn(0.8, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-left'>Execution Visualizer</m.p>
+                          <m.p variants={fadeIn(0.8, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-right refresh-button' onClick={() => {if (!runningAlgorithm) randomArrayGenerator()}}>Refresh</m.p>
+                        </div>
+                      )
+                    }
+                  </AnimatePresence>
+
+                  {
+                    selectedMenu === 0? <m.canvas key={selectedMenu} variants={fadeIn(1.4, 0.2)} initial="hidden" animate="show" exit="exit" ref={canvasRef} width="600" height="400" /> :
+                    selectedMenu === 1 && <m.canvas key={selectedMenu} variants={fadeIn(1.6, 0.2)} initial="hidden" animate="show" exit="exit" className='algos-canvas' ref={algosCanvasRef} width="600" height="400" />
+                  }
+                  
+                </m.div>
+
+              </m.div>
+            </>
+          ) : (
+            <>
+              <m.header variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className="App-header App-header-min">
+
+                <m.div className="App-title" variants={fadeInAndYAnimation(0.2, 0.2)} initial="hidden" animate="show" exit="exit" >
+                  <m.h1 className='title'>Performance Playground <span className="underlined"></span></m.h1>
+                </m.div>
+
+              </m.header>
+
+              <m.div variants={fadeInAndYAnimation(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className="App-body-min">
+                <m.div variants={fadeInAndYAnimation(0.3, 0.2)} initial="hidden" animate="show" className="warning-min">
+                  <m.div variants={fadeInAndYAnimation(0.4, 0.2)} initial="hidden" animate="show" className="handIcon">
+                    <img src={hand} alt="Hand" />
+                  </m.div>
+
+                  <m.p variants={fadeInAndYAnimation(0.5, 0.2)} initial="hidden" animate="show" className='warning-min-text hi-there'>Hi, there!</m.p>
+
+                  <m.p variants={fadeInAndYAnimation(0.6, 0.2)} initial="hidden" animate="show" className='warning-min-text'>This app is only available<br></br>for Desktop at this moment.</m.p>
+                </m.div>
+
+                <m.p variants={fadeInAndYAnimation(0.7, 0.2)} initial="hidden" animate="show" className='go-to'>Go to our <span className='link'>website</span> on your computer<br></br>to use the app.</m.p>
+              </m.div>
+            </>
+          )
+        }
+      </AnimatePresence>
     </div>
   );
 };
