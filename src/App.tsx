@@ -517,7 +517,7 @@ async function heapify(size: any, i: any) {
   return (
     <div className="App">
       <InitialTransition />
-      
+
       <AnimatePresence mode='wait'>
         {
           matchesMedia? (
@@ -595,14 +595,14 @@ async function heapify(size: any, i: any) {
 
                     <AnimatePresence mode='wait'>
                       {
-                        selectedMenu === 0? <m.p key={selectedMenu} variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Code Input<span className="underlined"></span></m.p> :
+                        selectedMenu === 0? <m.label htmlFor='code-input' key={selectedMenu} variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Code Input<span className="underlined"></span></m.label> :
                         selectedMenu === 1 && <m.p key={selectedMenu}  variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Sorting Algorithm<span className="underlined"></span></m.p>
                       }
                     </AnimatePresence>
                   </m.div>
                     <AnimatePresence mode='wait'>
                     {
-                      selectedMenu === 0? <m.textarea key={selectedMenu} variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input' value={code} onChange={handleChange} rows={10} cols={50} /> :
+                      selectedMenu === 0? <m.textarea id='code-input' key={selectedMenu} variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input' value={code} onChange={handleChange} rows={10} cols={50} /> :
                       selectedMenu === 1 && (
                         <div className="left-options">
                           <m.div key={selectedMenu} className="left-options-algorithms" variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit">

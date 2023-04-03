@@ -71,7 +71,7 @@ export const InitialTransition = () => {
 
                     <text
                         className="transition-title-main"
-                        text-anchor="middle"
+                        textAnchor="middle"
                         x="50%"
                         y="50%"
                         style={{ fill: "url(#pattern)" }}>
