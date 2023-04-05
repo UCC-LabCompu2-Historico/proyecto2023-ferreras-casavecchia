@@ -35,21 +35,6 @@ const App: React.FC = () => {
   const xOffset = 60;
   const yOffset = 10;
 
-  const getMaxBarHeight = () => {
-    if (canvasRef.current) return canvasRef.current.height - yOffset * 2;
-    if(algosCanvasRef.current) return algosCanvasRef.current.height - yOffset * 2;
-    return 0;
-  };
-
-  const randomArrayGenerator = () => {
-    const arr = [];
-    for (let i = 0; i < 25; i++) {
-      arr.push(Math.floor(Math.random() * 100 + 5));
-    }
-    setRandomArray(arr);
-    drawAlgos(-1, -1, arr);
-  }
-
   useEffect(() => {
     randomArrayGenerator();
   }, [selectedAlgo]);
@@ -59,32 +44,6 @@ const App: React.FC = () => {
     .matchMedia("(min-width: 1200px) and (min-height: 740px)")
     .addEventListener('change', e => setMatchesMedia( e.matches ));
   }, []);
-
-  const handleClick = (e: MouseEvent) => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-  
-    const rect = canvasRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-  
-    for (let i = 0; i < executionTimes.length; i++) {
-      const barHeight = (executionTimes[i] / 1000) * getMaxBarHeight();
-      const barX = xOffset - 2 + (i + 1) * ((canvas.width - xOffset * 2 - barWidth) / 10);
-      const barY = canvas.height - yOffset - barHeight + 1;
-  
-      if (
-        x >= barX &&
-        x <= barX + barWidth &&
-        y >= barY &&
-        y <= canvas.height - yOffset
-      ) {
-        const snippet = snippetMap.get(i);
-        setCode(snippet || '');
-        break;
-      }
-    }
-  };
 
   useEffect(() => {
     draw(executionTimes);
@@ -164,10 +123,78 @@ const App: React.FC = () => {
     };
   }, [selectedMenu]);
 
+  useEffect(() => {
+    randomArrayGenerator();
+  }, [selectedMenu]);
+
+/**
+  * Gets the maximum height of a chart bar based on the canvas height.
+  * @method getMaxBarHeight
+  */
+  const getMaxBarHeight = () => {
+    if (canvasRef.current) return canvasRef.current.height - yOffset * 2;
+    if(algosCanvasRef.current) return algosCanvasRef.current.height - yOffset * 2;
+    return 0;
+  };
+
+/**
+  * Creates a random array for the algos sorting menu.
+  * @method randomArrayGenerator
+  */
+  const randomArrayGenerator = () => {
+    const arr = [];
+    for (let i = 0; i < 25; i++) {
+      arr.push(Math.floor(Math.random() * 100 + 5));
+    }
+    setRandomArray(arr);
+    drawAlgos(-1, -1, arr);
+  }
+
+/**
+  * Handles click events on the canvas to display the code snippet of a specific execution time bar.
+  * @method handleClick
+  * @param {MouseEvent} e - The MouseEvent object representing the click event.
+  */
+  const handleClick = (e: MouseEvent) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+  
+    const rect = canvasRef.current.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+  
+    for (let i = 0; i < executionTimes.length; i++) {
+      const barHeight = (executionTimes[i] / 1000) * getMaxBarHeight();
+      const barX = xOffset - 2 + (i + 1) * ((canvas.width - xOffset * 2 - barWidth) / 10);
+      const barY = canvas.height - yOffset - barHeight + 1;
+  
+      if (
+        x >= barX &&
+        x <= barX + barWidth &&
+        y >= barY &&
+        y <= canvas.height - yOffset
+      ) {
+        const snippet = snippetMap.get(i);
+        setCode(snippet || '');
+        break;
+      }
+    }
+  };
+
+/**
+  * Handles the change event for the textarea, updating the code state.
+  * @method handleChange
+  * @param {React.ChangeEvent<HTMLTextAreaElement>} e - The change event of the textarea.
+  */
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setCode(e.target.value);
   };
 
+/** 
+  * Resizes the canvas based on the dimensions of its container.
+  * @method resizeCanvas
+  * @param {any} canvas - The canvas element to resize.
+  */
   const resizeCanvas = async (canvas: any) => {
     const container = document.querySelector('.App-body-right') as HTMLElement;
     if (!container) return;
@@ -185,6 +212,13 @@ const App: React.FC = () => {
     if(canvas === algosCanvasRef.current) await drawAlgos();
   }
 
+/**
+  * Draws the algorithm bars on the canvas.
+  * @method drawAlgos
+  * @param {number} [selectedBar=-1] - The index of the currently selected bar. Default is -1.
+  * @param {number} [pivotIndex=-1] - The index of the pivot element. Default is -1.
+  * @param {number[]} [arr=randomArray] - The array used to generate the bars. Default is randomArray.
+  */
   async function drawAlgos(selectedBar = -1, pivotIndex = -1, arr = randomArray) {
     const canvas = algosCanvasRef.current;
     if (!canvas) return;
@@ -221,16 +255,20 @@ const App: React.FC = () => {
     }
   }
 
-  useEffect(() => {
-    randomArrayGenerator();
-  }, [selectedMenu]);
-
+/**
+  * Executes the user's custom code or the selected sorting algorithm.
+  * @method handleRun
+  */
   const handleRun = () => {
     if(runningAlgorithm) return;
     if (selectedMenu === 0) executeCode();
     if (selectedMenu === 1) executeAlgo();
   }
 
+/**
+  * Executes the selected sorting algorithm on a copy of the random array.
+  * @method executeAlgo
+  */
   const executeAlgo = async () => {
     let arrayCopy = [...randomArray];
     const algorithms = [mergeSort, quickSort, heapSort, bubbleSort];
@@ -244,6 +282,12 @@ const App: React.FC = () => {
     setRunningAlgorithm(false);
   };
 
+/**
+  * Sorts the given array using the QuickSort algorithm.
+  * @param {Array} arr - The array to sort.
+  * @param {number} start - The starting index (default is 0).
+  * @param {number} end - The ending index (default is arr.length - 1).
+  */
   async function quickSort(arr: any, start = 0, end = arr.length - 1) {
     if (start >= end) {
       return;
@@ -257,6 +301,13 @@ const App: React.FC = () => {
     await drawAlgos(-1, -1, arr);
   }
   
+/**
+  * Partitions the given array for the QuickSort algorithm.
+  * @param {Array} arr - The array to partition.
+  * @param {number} start - The starting index.
+  * @param {number} end - The ending index.
+  * @returns {Promise<number>} - The pivot index.
+  */
   async function partition(arr: any, start: any, end: any) {
     const pivotIndex = Math.floor(Math.random() * (end - start + 1)) + start;
     const pivot = arr[pivotIndex];
@@ -274,6 +325,12 @@ const App: React.FC = () => {
     return i;
   }
 
+/**
+  * Sorts the given array using the MergeSort algorithm.
+  * @param {Array} arr - The array to sort.
+  * @param {number} start - The starting index (default is 0).
+  * @param {number} end - The ending index (default is arr.length - 1).
+  */
   async function mergeSort(arr: any, start = 0, end = arr.length - 1) {
     if (start >= end) {
         return;
@@ -288,6 +345,13 @@ const App: React.FC = () => {
     await drawAlgos(-1, -1, arr);
   }
 
+/**
+  * Merges two sorted subarrays for the MergeSort algorithm.
+  * @param {Array} arr - The array containing the subarrays to merge.
+  * @param {number} start - The starting index.
+  * @param {number} mid - The middle index.
+  * @param {number} end - The ending index.
+  */
   async function merge(arr: any, start: any, mid: any, end: any) {
     const left = arr.slice(start, mid + 1);
     const right = arr.slice(mid + 1, end + 1);
@@ -329,6 +393,13 @@ const App: React.FC = () => {
     }
   }
 
+/**
+  * Swaps two elements in the given array.
+  * @param {Array} arr - The array containing the elements to swap.
+  * @param {number} i - The index of the first element.
+  * @param {number} j - The index of the second element.
+  * @param {number} pivotIndex - The pivot index for the QuickSort algorithm (default is -1).
+  */
   async function swap(arr: any, i: any, j: any, pivotIndex = -1) {
     [arr[i], arr[j]] = [arr[j], arr[i]];
     setRandomArray([...arr]);
@@ -336,6 +407,9 @@ const App: React.FC = () => {
     await sleep(50);
   }
 
+/**
+  * Sorts the given array using the HeapSort algorithm.
+  */
   async function heapSort() {
     let size = randomArray.length;
 
@@ -354,9 +428,14 @@ const App: React.FC = () => {
     }
 
     await drawAlgos();
-}
+  }
 
-async function heapify(size: any, i: any) {
+/**
+  * Performs heapify operation for the HeapSort algorithm.
+  * @param {number} size - The size of the array.
+  * @param {number} i - The index of the element to heapify.
+  */
+  async function heapify(size: any, i: any) {
     return new Promise(async (resolve) => {
         let max = i;
         const left = 2 * i + 1;
@@ -383,8 +462,11 @@ async function heapify(size: any, i: any) {
         // @ts-ignore
         resolve();
     });
-}
+  }
 
+/**
+  * Sorts the given array using the BubbleSort algorithm.
+  */
   async function bubbleSort() {
       const n = randomArray.length;
 
@@ -403,11 +485,20 @@ async function heapify(size: any, i: any) {
       await drawAlgos();
   }
 
+/**
+  * Sleeps for a specified duration.
+  * @method sleep
+  * @param {number} ms - The number of milliseconds to sleep.
+  * @return {Promise} - A promise that resolves after the specified duration.
+  */
   const sleep = async (ms: any) => {
     return new Promise((resolve) => setTimeout(resolve, ms));
   };
   
-
+/**
+  * Executes the custom code and records its execution time.
+  * @method executeCode
+  */
   const executeCode = () => {
     const startTime = performance.now();
 
@@ -433,10 +524,25 @@ async function heapify(size: any, i: any) {
     });
   };
 
+/**
+  * Draws a rounded rectangle on the canvas.
+  * @method roundedRect
+  * @param {CanvasRenderingContext2D} ctx - The canvas rendering context.
+  * @param {number} x - The x-coordinate of the rectangle's starting point.
+  * @param {number} y - The y-coordinate of the rectangle's starting point.
+  * @param {number} width - The width of the rectangle.
+  * @param {number} height - The height of the rectangle.
+  * @param {number} radius - The radius of the rectangle's rounded corners.
+  */
   const roundedRect = (ctx: CanvasRenderingContext2D, x: number, y: number, width: number, height: number, radius: number) => {
     ctx.fillRect(x, y, width, height);
   };
 
+/**
+  * Draws the execution times chart on the canvas.
+  * @method draw
+  * @param {number[]} executionTimes - An array of execution times to draw.
+  */
   const draw = (executionTimes: number[]) => {
     const canvas = canvasRef.current;
     if (!canvas) return;
