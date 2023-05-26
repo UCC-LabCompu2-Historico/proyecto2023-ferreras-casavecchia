@@ -11,7 +11,7 @@ canvas {
   position: absolute;
 }
 
-.App-header {
+#App-header {
   height: 10vh;
   display: flex;
   align-items: center;
