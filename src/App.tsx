@@ -500,13 +500,19 @@ const App: React.FC = () => {
   * @method executeCode
   */
   const executeCode = () => {
+    if (!code) {
+      alert('Please enter some code!');
+      return;
+    }
+
     const startTime = performance.now();
 
     try {
       // eslint-disable-next-line
       eval(code);
     } catch (error) {
-      console.error(error);
+      alert("There was an Error: " + error);
+      return;
     }
 
     const endTime = performance.now();
@@ -629,13 +635,13 @@ const App: React.FC = () => {
           matchesMedia? (
             <>
 
-              <m.header variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className="App-header">
+              <m.header variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" id='App-header'>
 
-                <m.div className="App-title" variants={fadeInAndYAnimation(.2, 0.2)} initial="hidden" animate="show" exit="exit">
+                <m.main className="App-title" variants={fadeInAndYAnimation(.2, 0.2)} initial="hidden" animate="show" exit="exit">
                   <h1 className='title'>Performance Playground <span className="underlined"></span></h1>
-                </m.div>
+                </m.main>
 
-                <m.div variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className="App-nav-buttons">
+                <m.nav variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className="App-nav-buttons">
                   <div className="nav-button" onClick={() => {if (!runningAlgorithm) setSelectedMenu(0)}}>
                     <AnimatePresence mode='wait'>
                     {
@@ -684,7 +690,7 @@ const App: React.FC = () => {
                     <p className='nav-button-text-innactive'>Pathfinder Visualizer</p>
                   </div>
 
-                </m.div>
+                </m.nav>
 
                 <div className="App-off-button">
                 </div>
@@ -693,7 +699,7 @@ const App: React.FC = () => {
 
               <m.div variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className="App-body">
 
-                <m.div variants={contentAnimation(0.6)} initial="hidden" animate="show" exit="exit" className="App-body-left">
+                <m.section variants={contentAnimation(0.6)} initial="hidden" animate="show" exit="exit" className="App-body-left">
                   <m.div className="left-title" variants={fadeInAndYAnimation(1, 0.2)} initial="hidden" animate="show" exit="exit">
                     <m.div className="left-icon">
                       <img src={codeIcon} alt="Code" />
@@ -701,17 +707,17 @@ const App: React.FC = () => {
 
                     <AnimatePresence mode='wait'>
                       {
-                        selectedMenu === 0? <m.label htmlFor='code-input' key={selectedMenu} variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Code Input<span className="underlined"></span></m.label> :
-                        selectedMenu === 1 && <m.p key={selectedMenu}  variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Sorting Algorithm<span className="underlined"></span></m.p>
+                        selectedMenu === 0? <m.label htmlFor='code-input' key={0} variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Code Input<span className="underlined"></span></m.label> :
+                        selectedMenu === 1 && <m.p key={1}  variants={fadeInAndYAnimation(0, 0.2)} initial="hidden" animate="show" exit="exit" className='left-title-text'>Sorting Algorithm<span className="underlined"></span></m.p>
                       }
                     </AnimatePresence>
                   </m.div>
                     <AnimatePresence mode='wait'>
                     {
-                      selectedMenu === 0? <m.textarea id='code-input' key={selectedMenu} variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input' value={code} onChange={handleChange} rows={10} cols={50} /> :
+                      selectedMenu === 0? <m.textarea id='code-input' key={0} variants={fadeIn(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input' value={code} onChange={handleChange} rows={10} cols={50} /> :
                       selectedMenu === 1 && (
                         <div className="left-options">
-                          <m.div key={selectedMenu} className="left-options-algorithms" variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit">
+                          <m.div key={1} className="left-options-algorithms" variants={fadeIn(0.4, 0.2)} initial="hidden" animate="show" exit="exit">
                             <p className={selectedAlgo === 0? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(0)}}>Merge Sort</p>
                             <p className={selectedAlgo === 1? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(1)}}>Quick Sort</p>
                             <p className={selectedAlgo === 2? 'selected-algo' : ''} onClick={() => {if (!runningAlgorithm) setSelectedAlgo(2)}}>Heap Sort</p>
@@ -721,7 +727,7 @@ const App: React.FC = () => {
                             <div className="horizontal-separator"></div>
                           </m.div>
 
-                          <m.textarea key={selectedMenu} variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input algorithm-input' value={selectedAlgo === 0? ALGORITHMS.mergeSort.code : selectedAlgo === 1? ALGORITHMS.quickSort.code : selectedAlgo === 2? ALGORITHMS.heapSort.code : selectedAlgo === 3? ALGORITHMS.bubbleSort.code : ''} onChange={handleChange} rows={10} cols={50} readOnly />
+                          <m.textarea key={2} variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='left-code-input algorithm-input' value={selectedAlgo === 0? ALGORITHMS.mergeSort.code : selectedAlgo === 1? ALGORITHMS.quickSort.code : selectedAlgo === 2? ALGORITHMS.heapSort.code : selectedAlgo === 3? ALGORITHMS.bubbleSort.code : ''} onChange={handleChange} rows={10} cols={50} readOnly />
                         </div>
                       )
                     }
@@ -729,19 +735,19 @@ const App: React.FC = () => {
                   
                   <m.button className='run-button' onClick={handleRun} variants={fadeInAndYAnimation(0.8, 0.2)} initial="hidden" animate="show" exit="exit"><img src={runButton} alt="Run" /></m.button>
 
-                </m.div>
+                </m.section>
                 
-                <m.div className="App-body-right" variants={contentAnimation(0.8)} initial="hidden" animate="show" exit="exit">
+                <m.section className="App-body-right" variants={contentAnimation(0.8)} initial="hidden" animate="show" exit="exit">
                   <AnimatePresence mode='wait'>
                     {
                       selectedMenu === 0? (
-                        <div key={selectedMenu} className="right-title">
+                        <div key={0} className="right-title">
                           <m.p variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-left'>Execution Time</m.p>
                           <m.p variants={fadeIn(0.6, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-right'>Execution #</m.p>
                         </div>
                       ) :
                       selectedMenu === 1 && (
-                        <div key={selectedMenu} className="right-title">
+                        <div key={1} className="right-title">
                           <m.p variants={fadeIn(0.8, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-left'>Execution Visualizer</m.p>
                           <m.p variants={fadeIn(0.8, 0.2)} initial="hidden" animate="show" exit="exit" className='right-title-right refresh-button' onClick={() => {if (!runningAlgorithm) randomArrayGenerator()}}>Refresh</m.p>
                         </div>
@@ -750,11 +756,11 @@ const App: React.FC = () => {
                   </AnimatePresence>
 
                   {
-                    selectedMenu === 0? <m.canvas key={selectedMenu} variants={fadeIn(1.4, 0.2)} initial="hidden" animate="show" exit="exit" ref={canvasRef} width="600" height="400" /> :
-                    selectedMenu === 1 && <m.canvas key={selectedMenu} variants={fadeIn(1.6, 0.2)} initial="hidden" animate="show" exit="exit" className='algos-canvas' ref={algosCanvasRef} width="600" height="400" />
+                    selectedMenu === 0? <m.canvas key={0} variants={fadeIn(1.4, 0.2)} initial="hidden" animate="show" exit="exit" ref={canvasRef} width="600" height="400" /> :
+                    selectedMenu === 1 && <m.canvas key={1} variants={fadeIn(1.6, 0.2)} initial="hidden" animate="show" exit="exit" className='algos-canvas' ref={algosCanvasRef} width="600" height="400" />
                   }
                   
-                </m.div>
+                </m.section>
 
               </m.div>
             </>
@@ -768,7 +774,7 @@ const App: React.FC = () => {
 
               </m.header>
 
-              <m.div variants={fadeInAndYAnimation(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className="App-body-min">
+              <m.main variants={fadeInAndYAnimation(0.2, 0.2)} initial="hidden" animate="show" exit="exit" className="App-body-min">
                 <m.div variants={fadeInAndYAnimation(0.3, 0.2)} initial="hidden" animate="show" className="warning-min">
                   <m.div variants={fadeInAndYAnimation(0.4, 0.2)} initial="hidden" animate="show" className="handIcon">
                     <img src={hand} alt="Hand" />
@@ -780,7 +786,7 @@ const App: React.FC = () => {
                 </m.div>
 
                 <m.p variants={fadeInAndYAnimation(0.7, 0.2)} initial="hidden" animate="show" className='go-to'>Go to our <span className='link'>website</span> on your computer<br></br>to use the app.</m.p>
-              </m.div>
+              </m.main>
             </>
           )
         }
